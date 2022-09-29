@@ -1,5 +1,7 @@
 import cp from 'child_process'
 import util from 'node:util'
+import parser from '../utils/parser'
+import ping from 'ping'
 
 const exec = util.promisify(cp.exec)
 
@@ -8,27 +10,24 @@ export default {
      * get a list of all client objects
      */
     getClients: async () => {
-        // cmd: [
-        //     "ping",
-        //     "-c1",
-        //     "-w3",
-        //     client.allowedIps.split('/')[0]
-        // ],
-        // peers.map(i => {
-        //     const foundClient = clientTable.find(j => j.publicKey === i.publicKey)
-        //     if(!foundClient) return null
-        //     return {
-        //         ...i,
-        //         ...foundClient
-        //     }
-        // })
-        return [] as Array<{
-            name: string
-            endpoint: string
-            allowedIps: string
-            lastLtsHandshake: string
-            transfer: { received: string; sent: string }
-        }>
+        const [wgShow, catConfig] = await Promise.all([exec("wg show"), exec("cat /etc/wireguard/wg0.conf")])
+        const { peers } = parser('wg show', wgShow.stdout)
+        const { entriers } = parser('cat /etc/wireguard/wg0.conf', catConfig.stdout)
+        const entryPeerJoin = peers?.map(peer => {
+            const foundClient = entriers?.find(entry => entry.publicKey === peer.publicKey)
+            if (!foundClient) return null
+            return {
+                ...peer,
+                ...foundClient
+            }
+        }) || []
+        const pingedList = entryPeerJoin.map(async (client) => {
+            if(!client) return null
+            const [ destinationIp ] = client.allowedIps?.split('/') || '/'
+            const { alive } = await ping.promise.probe(destinationIp, { deadline: 3, min_reply: 1 })
+            return { ...client, status: alive }
+        })
+        return await Promise.all(pingedList)
     },
     /**
      * get a certain client by its public key string
@@ -48,9 +47,9 @@ export default {
      * modify an existing client fetched by its
      * @param {any} deps:any
      */
-    editClient: async (pk: string, payload: any) => {},
+    editClient: async (pk: string, payload: any) => { },
     /**
      * revoke an existing client fetched by its public key
      */
-    revokeClient: async (pk: string) => {},
+    revokeClient: async (pk: string) => { },
 }

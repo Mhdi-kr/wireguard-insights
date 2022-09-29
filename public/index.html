@@ -51,21 +51,18 @@
                                         <p>{{ peer.allowedIps }}</p>
                                     </td>
                                     <td class="p-3">
-                                        <p>{{ peer.lhs }}</p>
+                                        <p>{{ peer.lastTlsHandshake }}</p>
                                         <!-- <p class="dark:text-gray-400">Tuesday</p> -->
                                     </td>
                                     <td class="p-3">
-                                        <p>{{ peer.isConnected ? '✅' : '❌' }}</p>
+                                        <p>{{ peer.status ? '✅' : '❌' }}</p>
                                         <!-- <p class="dark:text-gray-400">Tuesday</p> -->
                                     </td>
                                     <td class="p-3">
                                         <p>{{ peer.transfer.sent }}</p>
                                     </td>
                                     <td class="p-3">
-                                        <span
-                                            class="px-3 py-1 font-semibold rounded-md dark:bg-violet-400 dark:text-gray-900">
-                                            <span>{{ peer.transfer.recieved }}</span>
-                                        </span>
+                                        <span>{{ peer.transfer.recieved }}</span>
                                     </td>
                                 </template>
                             </tr>
@@ -107,7 +104,7 @@
         },
         created() {
             if (!this.isFetching) { this.isFetching = true } else return;
-            fetch('/api/v1/peers').then(res => {
+            fetch('/api/v1/clients').then(res => {
                 this.isFetching = false
                 return res.json()
             }).then(({ data }) => this.peers = data)

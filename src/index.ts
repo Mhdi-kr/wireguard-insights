@@ -2,7 +2,7 @@ import express from 'express'
 import wireguard from './service/wireguard'
 
 const app = express()
-const port = process.env || 5000
+const port = process.env.HTTP_SERVER_PORT || 5000
 const router = express.Router()
 
 app.use(express.json())
