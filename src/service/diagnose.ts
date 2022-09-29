@@ -10,14 +10,18 @@ const checkWireguard = async () => {
     const { status } = parser('systemctl status wg-quick@wg0.service', stdout)
     return status
 }
+
 const checkConnection = () => {
     return Promise.all(
         ['1.1.1.1', '8.8.8.8', '8.8.4.4'].map(async (destination) => await ping.promise.probe(destination))
     )
 }
 
+/**
+ * returns the systemctl status of wireguard service and ping status to cloudflare and google dns resolver endpoints
+ */
 export default async () => {
-    const [ serviceStatus, pingList ] = await Promise.all([checkWireguard(), checkConnection()])
+    const [serviceStatus, pingList] = await Promise.all([checkWireguard(), checkConnection()])
     return {
         serviceStatus,
         pingList: pingList.reduce((acc, curr) => ({ ...acc, [curr.host]: curr.alive }), {}),
