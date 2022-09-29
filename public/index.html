@@ -92,7 +92,7 @@
             pollData: function () {
                 this.polling = setInterval(() => {
                     if (!this.isFetching) { this.isFetching = true } else return;
-                    fetch('/api/v1/peers').then(res => {
+                    fetch('/api/v1/clients').then(res => {
                         this.isFetching = false
                         return res.json()
                     }).then(({ data }) => this.peers = data)

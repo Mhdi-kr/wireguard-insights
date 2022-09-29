@@ -1,4 +1,5 @@
 import express from 'express'
+import diagnose from './service/diagnose'
 import wireguard from './service/wireguard'
 
 const app = express()
@@ -47,7 +48,18 @@ router.delete('/clients/:pk', async (req, res) => {
     } catch (error) {}
 })
 
-//
+router.get('/health', (req, res) => res.sendStatus(200))
+
+router.get('/diagnose', async (req, res) => {
+    try {
+        res.send({
+            data: await diagnose()
+        })
+    } catch (error) {
+        console.error(error)
+    }
+})
+
 app.use('/api/v1/', router)
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)

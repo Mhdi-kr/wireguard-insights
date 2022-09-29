@@ -1,5 +1,8 @@
 export default (command: string, stdout: string) => {
     switch (command) {
+        case 'systemctl status wg-quick@wg0.service':
+            const [key, value] = stdout.split('\n').find(line => line.includes('ActiveState'))?.split('ActiveState=') || ['ActiveState=', '']
+            return { status: value === 'active'};
         case 'wg show':
             const peers = stdout
                 .replaceAll(' ', '')
