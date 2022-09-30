@@ -1,4 +1,5 @@
 import express from 'express'
+import cors from 'cors'
 import diagnose from './service/diagnose'
 import wireguard from './service/wireguard'
 
@@ -6,6 +7,7 @@ const app = express()
 const port = process.env.HTTP_SERVER_PORT || 5000
 const router = express.Router()
 
+app.use(cors())
 app.use(express.json())
 app.use(express.static('public'))
 
@@ -50,7 +52,7 @@ router.delete('/clients/:pk', async (req, res) => {
 
 router.get('/health', (req, res) => res.sendStatus(200))
 
-router.get('/diagnose', async (req, res) => {
+router.get('/diagnostic', async (req, res) => {
     try {
         res.send({
             data: await diagnose()
