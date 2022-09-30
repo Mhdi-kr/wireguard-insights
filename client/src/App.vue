@@ -1,18 +1,27 @@
 <template>
-    <diagnostic-toolbar :diagnostics="diagnostic" />
-    <clients-table :clients="peers" />
+    <n-config-provider :theme="darkTheme">
+        <diagnostic-toolbar :diagnostics="diagnostic" />
+        <clients-table :loading="isLoading" :clients="peers" />
+    </n-config-provider>
 </template>
 
 <script lang="ts">
 import { defineComponent, shallowRef } from 'vue'
+import { darkTheme, NConfigProvider } from 'naive-ui'
 import { LogoGoogle, Cloud, Shield } from '@vicons/ionicons5'
 import ClientsTable from './components/ClientsTable.vue'
 import DiagnosticToolbar from './components/DiagnosticToolbar.vue'
 
 export default defineComponent({
     components: {
+        NConfigProvider,
         ClientsTable,
         DiagnosticToolbar,
+    },
+    setup() {
+        return {
+            darkTheme,
+        }
     },
     data() {
         return {
@@ -34,7 +43,7 @@ export default defineComponent({
                         this.isFetching = false
                         return res.json()
                     })
-                    .then(({ data }) => (this.peers = data.filter(i => !!i)))
+                    .then(({ data }) => (this.peers = data.filter((i) => !!i)))
                 fetch('http://176.9.213.130:5000/api/v1/diagnostic')
                     .then((res) => {
                         this.isFetching = false
@@ -45,36 +54,38 @@ export default defineComponent({
                             {
                                 message: 'wireguard service',
                                 status: data.serviceStatus,
-                                icon: shallowRef(Shield)
+                                icon: shallowRef(Shield),
                             },
                             {
                                 message: 'cloudflare ping',
                                 status: data.pingList['1.1.1.1'],
-                                icon: shallowRef(Cloud)
+                                icon: shallowRef(Cloud),
                             },
                             {
                                 message: 'google ping',
                                 status: data.pingList['8.8.8.8'],
-                                icon: shallowRef(LogoGoogle)
+                                icon: shallowRef(LogoGoogle),
                             },
                         ]
                     })
-            }, 300)
+            }, 500)
         },
     },
     beforeDestroy() {
         clearInterval(this.polling)
     },
     created() {
+        this.isLoading = true
         if (!this.isFetching) {
             this.isFetching = true
         } else return
         fetch('http://176.9.213.130:5000/api/v1/clients')
             .then((res) => {
                 this.isFetching = false
+                this.isLoading = false
                 return res.json()
             })
-            .then(({ data }) => (this.peers = data.filter(i => !!i)))
+            .then(({ data }) => (this.peers = data.filter((i) => !!i)))
         fetch('http://176.9.213.130:5000/api/v1/diagnostic')
             .then((res) => {
                 this.isFetching = false

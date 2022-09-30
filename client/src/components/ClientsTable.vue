@@ -1,56 +1,51 @@
 <template>
-  {{ clients }}
-    <n-data-table
-    :columns="columns"
-    :data="clients"
-    :pagination="pagination"
-    :bordered="false"
-  />
-
-    <n-table :bordered="false" :single-line="false">
-        <thead>
-            <tr>
-                <th>client</th>
-                <th>peer</th>
-                <th>endpoint</th>
-                <th>allowed ips</th>
-                <th>last TLS handshake</th>
-                <th>Status</th>
-                <th>recieved</th>
-                <th>sent</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr v-for="(client, index) in clients" :key="client && client.publicKey">
-                <template v-if="client">
-                    <td>{{ String(client.client) }}</td>
-                    <td>{{ String(client.publicKey).slice(0, 16) }}...</td>
-                    <td>{{ client.endpoint }}</td>
-                    <td>{{ client.allowedIps }}</td>
-                    <td>{{ client.lastTlsHandshake }}</td>
-                    <td>{{ client.status ? '✅' : '❌' }}</td>
-                    <td>{{ client.transfer.sent }}</td>
-                    <td>{{ client.transfer.recieved }}</td>
-                </template>
-            </tr>
-        </tbody>
-    </n-table>
+    <n-data-table :loading="loading" :columns="columns" :data="clients" :pagination="pagination" :bordered="false" />
 </template>
 
 <script lang="ts">
 import { defineComponent, h } from 'vue'
-import { NTable, NButton, useMessage, NDataTable, NIcon } from 'naive-ui'
-import { PlugConnected20Filled, PlugDisconnected28Regular } from '@vicons/fluent'
+import { NTable, NButton, NDataTable, NIcon } from 'naive-ui'
+import { PlugConnected20Filled, PlugDisconnected28Regular, MoreHorizontal32Filled } from '@vicons/fluent'
 
 const createColumns = ({ play }) => {
     return [
+        {
+            title: 'Status',
+            key: 'status',
+            render(row) {
+                return h('div', {}, [
+                    h(
+                        NButton,
+                        { circle: true, secondary: true, type: row.status ? 'success' : 'default' },
+                        h(NIcon, { size: 20 }, [h(row.status ? PlugConnected20Filled : PlugDisconnected28Regular)])
+                    ),
+                ])
+            },
+        },
         {
             title: 'Client',
             key: 'client',
         },
         {
+            title: 'Download',
+            key: 'transfer.sent',
+            render(row) {
+                return h('p', {}, String(row.transfer.sent))
+            },
+        },
+        {
+            title: 'Upload',
+            key: 'transfer.received',
+            render(row) {
+                return h('p', {}, String(row.transfer.recieved))
+            },
+        },
+        {
             title: 'Public Key',
             key: 'publicKey',
+            render(row) {
+                return h('p', {}, String(row.publicKey).slice(0, 10))
+            },
         },
         {
             title: 'Endpoint',
@@ -65,32 +60,16 @@ const createColumns = ({ play }) => {
             key: 'lastTlsHandshake',
         },
         {
-            title: 'Status',
-            key: 'status',
-            render(row) {
-              return h('div', {}, [
-                row.status ? h(NIcon, { size: 16}, [h(PlugConnected20Filled)]) : h(NIcon, { size: 16}, [h(PlugDisconnected28Regular)])
-              ])
-            }
-        },
-        {
-            title: 'Recieved',
-            key: 'trasfer.sent',
-        },
-        {
             title: 'Action',
             key: 'actions',
             render(row) {
-                return h(
-                    NButton,
-                    {
-                        strong: true,
-                        tertiary: true,
-                        size: 'small',
-                        onClick: () => play(row),
-                    },
-                    { default: () => 'Play' }
-                )
+                return h('div', {}, [
+                    h(
+                        NButton,
+                        { circle: true, secondary: true },
+                        h(NIcon, { size: 20 }, [ h(MoreHorizontal32Filled) ])
+                    ),
+                ])
             },
         },
     ]
@@ -100,7 +79,7 @@ export default defineComponent({
     name: 'ClientsTable',
     components: {
         NTable,
-        NDataTable
+        NDataTable,
     },
     setup() {
         return {
@@ -113,6 +92,10 @@ export default defineComponent({
         }
     },
     props: {
+        loading: {
+            type: Boolean,
+            default: () => true,
+        },
         clients: {
             type: Array<any>,
             required: true,
