@@ -9,7 +9,6 @@ const router = express.Router()
 
 app.use(cors())
 app.use(express.json())
-app.use(express.static('public'))
 
 // get all clients
 router.get('/clients', async (req, res) => {

@@ -1,11 +1,28 @@
 <template>
-    <n-data-table :loading="loading" :columns="columns" :data="clients" :pagination="pagination" :bordered="false" />
+    <n-data-table size="small" :loading="loading" :columns="columns" :data="clients" :pagination="{ pageSize: 10 }" :bordered="false" />
 </template>
 
 <script lang="ts">
 import { defineComponent, h } from 'vue'
-import { NTable, NButton, NDataTable, NIcon } from 'naive-ui'
-import { PlugConnected20Filled, PlugDisconnected28Regular, MoreHorizontal32Filled } from '@vicons/fluent'
+import type { Component } from 'vue'
+import { NTable, NButton, NDataTable, NIcon, NTag, NDropdown } from 'naive-ui'
+import {
+    PlugConnected20Filled,
+    PlugDisconnected28Regular,
+    MoreHorizontal32Filled,
+    QrCode24Filled,
+    Delete16Regular,
+    Document16Regular,
+    Edit16Regular,
+} from '@vicons/fluent'
+
+const renderIcon = (icon: Component) => {
+    return () => {
+        return h(NIcon, null, {
+            default: () => h(icon),
+        })
+    }
+}
 
 const createColumns = ({ play }) => {
     return [
@@ -44,7 +61,7 @@ const createColumns = ({ play }) => {
             title: 'Public Key',
             key: 'publicKey',
             render(row) {
-                return h('p', {}, String(row.publicKey).slice(0, 10))
+                return h(NTag, { size: 'small', round: true }, String(row.publicKey).slice(0, 10))
             },
         },
         {
@@ -63,17 +80,36 @@ const createColumns = ({ play }) => {
             title: 'Action',
             key: 'actions',
             render(row) {
-                return h('div', {}, [
-                    h(
-                        NButton,
-                        { circle: true, secondary: true },
-                        h(NIcon, { size: 20 }, [ h(MoreHorizontal32Filled) ])
-                    ),
+                return h(NDropdown, { options: dropDownOptions, showArrow: true }, [
+                    h(NButton, { circle: true, secondary: true }, h(NIcon, { size: 20 }, [h(MoreHorizontal32Filled)])),
                 ])
             },
         },
     ]
 }
+
+const dropDownOptions = [
+    {
+        label: 'Edit Client',
+        key: 'EDIT',
+        icon: renderIcon(Edit16Regular),
+    },
+    {
+        label: 'Download QR Code',
+        key: 'QR',
+        icon: renderIcon(QrCode24Filled),
+    },
+    {
+        label: 'Download Config File',
+        key: 'CONF',
+        icon: renderIcon(Document16Regular),
+    },
+    {
+        label: 'Revoke Client',
+        key: 'REVOKE',
+        icon: renderIcon(Delete16Regular),
+    },
+]
 
 export default defineComponent({
     name: 'ClientsTable',

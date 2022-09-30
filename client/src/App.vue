@@ -1,9 +1,22 @@
 <template>
     <n-config-provider :theme="darkTheme">
-        <diagnostic-toolbar :diagnostics="diagnostic" />
-        <clients-table :loading="isLoading" :clients="peers" />
+        <div class="container">
+            <diagnostic-toolbar class="toolbar" :diagnostics="diagnostic" />
+            <clients-table :loading="isLoading" :clients="peers" />
+        </div>
     </n-config-provider>
 </template>
+
+<style scoped>
+    .container {
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+    }
+    .toolbar {
+        margin-bottom: 1rem;
+    }
+</style>
 
 <script lang="ts">
 import { defineComponent, shallowRef } from 'vue'

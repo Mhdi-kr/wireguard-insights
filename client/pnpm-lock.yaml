@@ -10,12 +10,14 @@ specifiers:
   vfonts: ^0.0.3
   vite: ^3.1.0
   vue: ^3.2.37
+  vue-router: '4'
   vue-tsc: ^0.40.4
 
 dependencies:
   '@vicons/fluent': 0.12.0
   '@vicons/ionicons5': 0.12.0
   vue: 3.2.40
+  vue-router: 4.1.5_vue@3.2.40
 
 devDependencies:
   '@vicons/fa': 0.12.0
@@ -201,6 +203,10 @@ packages:
     dependencies:
       '@vue/compiler-dom': 3.2.40
       '@vue/shared': 3.2.40
+
+  /@vue/devtools-api/6.4.2:
+    resolution: {integrity: sha512-6hNZ23h1M2Llky+SIAmVhL7s6BjLtZBCzjIz9iRSBUsysjE7kC39ulW0dH4o/eZtycmSt4qEr6RDVGTIuWu+ow==}
+    dev: false
 
   /@vue/reactivity-transform/3.2.40:
     resolution: {integrity: sha512-HQUCVwEaacq6fGEsg2NUuGKIhUveMCjOk8jGHqLXPI2w6zFoPrlQhwWEaINTv5kkZDXKEnCijAp+4gNEHG03yw==}
@@ -702,6 +708,15 @@ packages:
       evtd: 0.2.4
       vue: 3.2.40
     dev: true
+
+  /vue-router/4.1.5_vue@3.2.40:
+    resolution: {integrity: sha512-IsvoF5D2GQ/EGTs/Th4NQms9gd2NSqV+yylxIyp/OYp8xOwxmU8Kj/74E9DTSYAyH5LX7idVUngN3JSj1X4xcQ==}
+    peerDependencies:
+      vue: ^3.2.0
+    dependencies:
+      '@vue/devtools-api': 6.4.2
+      vue: 3.2.40
+    dev: false
 
   /vue-tsc/0.40.13_typescript@4.8.4:
     resolution: {integrity: sha512-xzuN3g5PnKfJcNrLv4+mAjteMd5wLm5fRhW0034OfNJZY4WhB07vhngea/XeGn7wNYt16r7syonzvW/54dcNiA==}
