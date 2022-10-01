@@ -24,6 +24,7 @@ import { darkTheme, NConfigProvider } from 'naive-ui'
 import { LogoGoogle, Cloud, Shield } from '@vicons/ionicons5'
 import ClientsTable from './components/ClientsTable.vue'
 import DiagnosticToolbar from './components/DiagnosticToolbar.vue'
+import endpoints from './endpoints'
 
 export default defineComponent({
     components: {
@@ -51,13 +52,13 @@ export default defineComponent({
                 if (!this.isFetching) {
                     this.isFetching = true
                 } else return
-                fetch('http://176.9.213.130:5000/api/v1/clients')
+                fetch(endpoints.CLIENTS)
                     .then((res) => {
                         this.isFetching = false
                         return res.json()
                     })
                     .then(({ data }) => (this.peers = data.filter((i) => !!i)))
-                fetch('http://176.9.213.130:5000/api/v1/diagnostic')
+                fetch(endpoints.DIAGNOSTICS)
                     .then((res) => {
                         this.isFetching = false
                         return res.json()
@@ -92,14 +93,14 @@ export default defineComponent({
         if (!this.isFetching) {
             this.isFetching = true
         } else return
-        fetch('http://176.9.213.130:5000/api/v1/clients')
+        fetch(endpoints.CLIENTS)
             .then((res) => {
                 this.isFetching = false
                 this.isLoading = false
                 return res.json()
             })
             .then(({ data }) => (this.peers = data.filter((i) => !!i)))
-        fetch('http://176.9.213.130:5000/api/v1/diagnostic')
+        fetch(endpoints.DIAGNOSTICS)
             .then((res) => {
                 this.isFetching = false
                 return res.json()
