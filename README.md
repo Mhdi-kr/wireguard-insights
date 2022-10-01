@@ -10,11 +10,16 @@ make sure you have wiregaurd installed on your machine.
 
 ## Installation
 
-### Docker
+### PM2
 
 ```BASH
-docker build -t wireguard-insights ./
+cd client && pm2 start --name wg-insights/client pnpm -- prod
 ```
+
+```BASH
+cd server && pm2 start --name wg-insights/server yarn -- start
+```
+### Docker
 
 ```BASH
 docker build -t wireguard-insights ./

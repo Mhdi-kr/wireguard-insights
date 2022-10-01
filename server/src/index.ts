@@ -49,12 +49,20 @@ router.delete('/clients/:pk', async (req, res) => {
     } catch (error) {}
 })
 
+// download client configuration
+router.get('/clients/:pk/configuration', async (req, res) => {
+    try {
+    } catch (error) {
+        console.error(error)
+    }
+})
+
 router.get('/health', (req, res) => res.sendStatus(200))
 
 router.get('/diagnostic', async (req, res) => {
     try {
         res.send({
-            data: await diagnose()
+            data: await diagnose(),
         })
     } catch (error) {
         console.error(error)

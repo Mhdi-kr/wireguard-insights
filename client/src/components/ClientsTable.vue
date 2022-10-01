@@ -24,12 +24,12 @@ const renderIcon = (icon: Component) => {
     }
 }
 
-const createColumns = ({ play }) => {
+const createColumns = ({ play }: { play: any }) => {
     return [
         {
             title: 'Status',
             key: 'status',
-            render(row) {
+            render(row: any) {
                 return h('div', {}, [
                     h(
                         NButton,
@@ -46,21 +46,21 @@ const createColumns = ({ play }) => {
         {
             title: 'Download',
             key: 'transfer.sent',
-            render(row) {
+            render(row: any) {
                 return h('p', {}, String(row.transfer.sent))
             },
         },
         {
             title: 'Upload',
             key: 'transfer.received',
-            render(row) {
+            render(row: any) {
                 return h('p', {}, String(row.transfer.recieved))
             },
         },
         {
             title: 'Public Key',
             key: 'publicKey',
-            render(row) {
+            render(row: any) {
                 return h(NTag, { size: 'small', round: true }, String(row.publicKey).slice(0, 10))
             },
         },
@@ -79,7 +79,7 @@ const createColumns = ({ play }) => {
         {
             title: 'Action',
             key: 'actions',
-            render(row) {
+            render(row: any) {
                 return h(NDropdown, { options: dropDownOptions, showArrow: true }, [
                     h(NButton, { circle: true, secondary: true }, h(NIcon, { size: 20 }, [h(MoreHorizontal32Filled)])),
                 ])
@@ -120,7 +120,7 @@ export default defineComponent({
     setup() {
         return {
             columns: createColumns({
-                play(row) {
+                play(row: any) {
                     console.log('hello there')
                 },
             }),
