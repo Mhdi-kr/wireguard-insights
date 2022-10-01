@@ -17,13 +17,23 @@ const checkConnection = () => {
     )
 }
 
+const checkSystemResources = () => {
+    return exec('top -b -n 1')
+}
+
 /**
  * returns the systemctl status of wireguard service and ping status to cloudflare and google dns resolver endpoints
  */
 export default async () => {
-    const [serviceStatus, pingList] = await Promise.all([checkWireguard(), checkConnection()])
+    const [serviceStatus, pingList, top] = await Promise.all([checkWireguard(), checkConnection(), checkSystemResources()])
     return {
         serviceStatus,
-        pingList: pingList.reduce((acc, curr) => ({ ...acc, [curr.host]: curr.alive }), {}),
+        serverStats: {
+            ...parser('top -b -n 1', top.stdout)
+        },
+        pingList: pingList.reduce((acc, curr) => ({ ...acc, [curr.host]: {
+            alive: curr.alive,
+            time: curr.time
+        } }), {}),
     }
 }

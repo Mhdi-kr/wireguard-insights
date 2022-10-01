@@ -1,8 +1,11 @@
 export default (command: string, stdout: string) => {
     switch (command) {
         case 'systemctl status wg-quick@wg0.service':
-            const [key, value] = stdout.split('\n').find(line => line.includes('ActiveState'))?.split('ActiveState=') || ['ActiveState=', '']
-            return { status: value === 'active'};
+            const [key, value] = stdout
+                .split('\n')
+                .find((line) => line.includes('ActiveState'))
+                ?.split('ActiveState=') || ['ActiveState=', '']
+            return { status: value === 'active' }
         case 'wg show':
             const peers = stdout
                 .replaceAll(' ', '')
@@ -10,7 +13,7 @@ export default (command: string, stdout: string) => {
                 .map((i) => i.split('\n'))
                 .filter((i) => i[0].includes('peer'))
                 .map((i) => {
-                    const [ publicKey, psk, endpoint, allowedIps, lastTlsHandshake, transfer ] = i
+                    const [publicKey, psk, endpoint, allowedIps, lastTlsHandshake, transfer] = i
                     return {
                         publicKey: !!publicKey ? publicKey.split('peer:')[1] : null,
                         endpoint: !!endpoint ? endpoint.split('endpoint:')[1] : null,
@@ -37,12 +40,24 @@ export default (command: string, stdout: string) => {
             return { peers }
         case 'cat /etc/wireguard/wg0.conf':
             const [_, ...rest] = stdout.split('\n\n').map((i) => i.split('\n'))
-            const entriers = rest.map(([client, _, publicKey, psk,allowedIps]) => ({
+            const entriers = rest.map(([client, _, publicKey, psk, allowedIps]) => ({
                 client: !!client ? client.split('### Client ')[1] : null,
                 publicKey: !!publicKey ? publicKey.split('PublicKey = ')[1] : null,
                 allowedIps: !!allowedIps ? allowedIps.split('AllowedIPs = ')[1] : null,
             }))
             return { entriers }
+        case 'top -b -n 1':
+            const [topStr, tasksStr, cpuStr, memStr, swapStr] = stdout.split('\n').map((i) => i.replaceAll(' ', ''))
+            console.log([topStr, tasksStr, cpuStr, memStr, swapStr])
+            return {
+                mem: {
+                    total: memStr.split(':')[1].split(',')[0].split('total')[0],
+                    used: memStr.split(':')[1].split(',')[2].split('used')[0],
+                },
+                cpu: {
+                    used: cpuStr.split(',')[1].split('sy')[0],
+                },
+            }
         default:
             return {}
     }

@@ -1,6 +1,6 @@
 import express from 'express'
 import cors from 'cors'
-import diagnose from './service/diagnose'
+import stats from './service/stats'
 import wireguard from './service/wireguard'
 
 const app = express()
@@ -59,10 +59,10 @@ router.get('/clients/:pk/configuration', async (req, res) => {
 
 router.get('/health', (req, res) => res.sendStatus(200))
 
-router.get('/diagnostics', async (req, res) => {
+router.get('/stats', async (req, res) => {
     try {
         res.send({
-            data: await diagnose(),
+            data: await stats(),
         })
     } catch (error) {
         console.error(error)
