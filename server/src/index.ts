@@ -59,7 +59,7 @@ router.get('/clients/:pk/configuration', async (req, res) => {
 
 router.get('/health', (req, res) => res.sendStatus(200))
 
-router.get('/diagnostic', async (req, res) => {
+router.get('/diagnostics', async (req, res) => {
     try {
         res.send({
             data: await diagnose(),
