@@ -70,6 +70,7 @@ router.get('/stats', async (req, res) => {
 })
 
 app.use('/api/v1/', router)
+
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
 })

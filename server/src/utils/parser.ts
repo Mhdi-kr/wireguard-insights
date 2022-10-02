@@ -48,15 +48,21 @@ export default (command: string, stdout: string) => {
             return { entriers }
         case 'top -b -n 1':
             const [topStr, tasksStr, cpuStr, memStr, swapStr] = stdout.split('\n').map((i) => i.replaceAll(' ', ''))
-            console.log([topStr, tasksStr, cpuStr, memStr, swapStr])
+            const total = memStr.split(':')[1].split(',')[0].split('total')[0]
+            const used = memStr.split(':')[1].split(',')[2].split('used')[0]
             return {
-                mem: {
-                    total: memStr.split(':')[1].split(',')[0].split('total')[0],
-                    used: memStr.split(':')[1].split(',')[2].split('used')[0],
-                },
-                cpu: {
-                    used: cpuStr.split(',')[1].split('sy')[0],
-                },
+                status: [
+                    {
+                        name: 'RAM',
+                        message: [used, '/', total].join(''),
+                        percent: ((parseInt(used)) / parseInt(total)) * 100
+                    },
+                    {
+                        name: 'CPU',
+                        message: cpuStr.split(',')[1].split('sy')[0],
+                        precent: parseInt(cpuStr.split(',')[1].split('sy')[0]),
+                    }
+                ]
             }
         default:
             return {}
