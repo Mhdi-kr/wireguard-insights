@@ -1,8 +1,8 @@
 const BASE_URL = import.meta.env.VITE_SERVER_BASE_URL
 const CLIENTS = BASE_URL + 'clients'
-const DIAGNOSTICS = BASE_URL + 'diagnostics'
+const STATS = BASE_URL + 'stats'
 
 export default {
     CLIENTS,
-    DIAGNOSTICS
+    STATS
 }

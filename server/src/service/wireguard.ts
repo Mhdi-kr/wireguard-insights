@@ -1,5 +1,5 @@
 import cp from 'child_process'
-import util from 'node:util'
+import util from 'util'
 import parser from '../utils/parser'
 import ping from 'ping'
 
