@@ -20,13 +20,14 @@ export default {
                 ...peer,
                 ...foundClient
             }
-        }) || []
+        }).filter(Boolean) || []
         const pingedList = entryPeerJoin.map(async (client) => {
             if(!client) return null
             const [ destinationIp ] = client.allowedIps?.split('/') || '/'
             const { alive } = await ping.promise.probe(destinationIp, { deadline: 3, min_reply: 1 })
             return { ...client, status: alive }
-        })
+        }).filter(Boolean)
+
         return await Promise.all(pingedList)
     },
     /**

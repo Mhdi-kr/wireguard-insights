@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import stats from './service/stats'
 import wireguard from './service/wireguard'
+import diagnose from './service/diagnose'
 
 const app = express()
 const port = process.env.HTTP_SERVER_PORT || 5000
@@ -64,6 +65,16 @@ router.get('/stats', async (req, res) => {
         res.send({
             data: await stats(),
         })
+    } catch (error) {
+        console.error(error)
+    }
+})
+
+router.get('/diagnose', async (req, res) => {
+    try {
+        res.send({
+            data: await diagnose.run()
+        }) 
     } catch (error) {
         console.error(error)
     }
