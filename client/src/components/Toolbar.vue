@@ -3,8 +3,8 @@
         <n-space align="center" justify="space-between">
             <n-space align="center" class="select-none text-2xl">
                 <span class="text-2xl">🐉</span>
-                <span>|</span>
-                <span>Wireguard Insights</span>
+                <span class="hidden md:block">|</span>
+                <span class="hidden md:block">Wireguard Insights</span>
             </n-space>
             <n-space align="center">
                 <n-popover trigger="hover" v-for="resource in stats.resources" :key="resource.name">

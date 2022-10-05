@@ -1,7 +1,7 @@
 <template>
     <section>
         <n-card size="small" class="mb-4">
-            <n-space align="center" justify="space-between">
+            <n-space align="center" :wrap="false" justify="space-between">
                 <n-input
                     v-model:value="query"
                     @input="onQueryChanged"
@@ -20,6 +20,7 @@
         </n-card>
         <n-card size="small">
             <n-data-table
+                class="whitespace-pre"
                 size="small"
                 :loading="loading"
                 :columns="columns"
