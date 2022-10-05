@@ -1,7 +1,8 @@
 import cp from 'child_process'
 import util from 'util'
-import parser from '../utils/parser'
 import ping from 'ping'
+import parser from '../utils/parser'
+import { ORMInstance } from '../index'
 
 const exec = util.promisify(cp.exec)
 
@@ -10,11 +11,11 @@ export default {
      * get a list of all client objects
      */
     getClients: async () => {
-        const [wgShow, catConfig] = await Promise.all([exec("wg show"), exec("cat /etc/wireguard/wg0.conf")])
+        const [wgShow] = await Promise.all([exec("wg show")])
         const { peers } = parser('wg show', wgShow.stdout)
-        const { entriers } = parser('cat /etc/wireguard/wg0.conf', catConfig.stdout)
+        const { peers: entries } = ORMInstance.selectInterface('wg0')
         const entryPeerJoin = peers?.map(peer => {
-            const foundClient = entriers?.find(entry => entry.publicKey === peer.publicKey)
+            const foundClient = entries?.find(entry => entry.publicKey === peer.publicKey)
             if (!foundClient) return null
             return {
                 ...peer,

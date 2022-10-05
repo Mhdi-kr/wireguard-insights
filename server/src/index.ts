@@ -3,10 +3,12 @@ import cors from 'cors'
 import stats from './service/stats'
 import wireguard from './service/wireguard'
 import diagnose from './service/diagnose'
+import { ORM } from './utils/orm'
 
 const app = express()
 const port = process.env.HTTP_SERVER_PORT || 5000
 const router = express.Router()
+export const ORMInstance = new ORM()
 
 app.use(cors())
 app.use(express.json())
@@ -82,6 +84,7 @@ router.get('/diagnose', async (req, res) => {
 
 app.use('/api/v1/', router)
 
-app.listen(port, () => {
+app.listen(port, async () => {
+    await ORMInstance.loadInterfaces()
     console.log(`Example app listening on port ${port}`)
 })
