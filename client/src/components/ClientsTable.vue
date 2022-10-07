@@ -1,14 +1,55 @@
 <template>
     <section>
+        <n-modal v-model:show="isNewClientModalShown" title="New Client">
+            <n-card title="New Client" style="width: 300px; max-width: 600px" role="dialog" :bordered="false">
+                <n-input
+                    class="mb-2 mt-2"
+                    :status="newClientFormStatusList.name"
+                    clearable
+                    v-model:value="newClientForm.name"
+                    type="text"
+                    placeholder="Client name"
+                />
+                <n-input
+                    class="mb-2"
+                    clearable
+                    :status="newClientFormStatusList.excludeIps"
+                    v-model:value="newClientForm.excludeIps"
+                    type="text"
+                    placeholder="Exclude IPs"
+                />
+                <div class="flex">
+                    <n-input
+                        class="mr-1"
+                        :status="newClientFormStatusList.endpointIp"
+                        clearable
+                        v-model:value="newClientForm.endpointIp"
+                        type="text"
+                        placeholder="Endpoint IP"
+                    />
+                    <n-input
+                        class="ml-1"
+                        :status="newClientFormStatusList.endpointPort"
+                        v-model:value="newClientForm.endpointPort"
+                        clearable
+                        type="text"
+                        placeholder="Endpoint Port"
+                    />
+                </div>
+                <template #footer>
+                    <div class="flex items-center justify-end">
+                        <n-button class="mx-2" @click="isNewClientModalShown = false">close</n-button>
+                        <n-button type="success" @click="onNewClientConfirmedClicked" :disabled="!isNewClientFormValid"
+                            >confirm</n-button
+                        >
+                    </div>
+                </template>
+            </n-card>
+        </n-modal>
         <n-card size="small" class="mb-4">
             <n-space align="center" :wrap="false" justify="space-between">
-                <n-input
-                    v-model:value="query"
-                    @input="onQueryChanged"
-                    round
-                    placeholder="Search by name or IP"
-                />
-                <n-button tertiary round>
+                <n-input v-model:value="query" @input="onQueryChanged" round placeholder="Search by name or IP" />
+                <n-button @click="isNewClientModalShown = true" tertiary round>
                     <template #icon>
                         <n-icon>
                             <add-circle />
@@ -34,9 +75,9 @@
 </template>
 
 <script lang="ts" setup>
-import { h, defineProps, defineEmits, ref } from 'vue'
+import { h, defineProps, defineEmits, ref, reactive, computed } from 'vue'
 import type { Component } from 'vue'
-import { NButton, NDataTable, NIcon, NTag, NDropdown, NCard, NInput, NSpace } from 'naive-ui'
+import { NButton, NDataTable, NIcon, NTag, NDropdown, NCard, NInput, NSpace, NModal } from 'naive-ui'
 import { AddCircle } from '@vicons/ionicons5'
 
 import {
@@ -49,7 +90,8 @@ import {
     Edit16Regular,
     Pin20Regular,
 } from '@vicons/fluent'
-import { stringifyQuery } from 'vue-router'
+import { useFetch } from '@vueuse/core'
+import endpoints from '../endpoints'
 
 const renderIcon = (icon: Component) => {
     return () => {
@@ -57,6 +99,60 @@ const renderIcon = (icon: Component) => {
             default: () => h(icon),
         })
     }
+}
+
+// TODO: make a new namespace/component to isolate newClient business
+
+const isIpv4Valid = (ipv4: string) => /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$/.test(ipv4)
+
+const isNumberOnly = (str: string) => /^[0-9]*$/.test(str)
+
+const newClientForm = reactive({
+    name: '',
+    excludeIps: '',
+    endpointIp: '',
+    endpointPort: '',
+})
+
+const newClientFetcher = useFetch(endpoints.CLIENTS)
+
+const isNewClientFormValid = computed(() => !Object.values(validations.value).includes(false))
+
+const validations = computed(() => ({
+    name: !newClientForm.name.includes(' ') && newClientForm.name.length < 15 && newClientForm.name.length > 0, // name should not have contain spaces and be less than 15 chars
+    excludeIps: Boolean(
+        !newClientForm.excludeIps
+            .split(',')
+            .map((i) => String(i).trim())
+            .map(isIpv4Valid)
+            .includes(false) && newClientForm.excludeIps.length
+    ), // comma separated valid ipv4s, not required
+    endpointIp: isIpv4Valid(newClientForm.endpointIp), // single valid ipv4
+    endpointPort:
+        newClientForm.endpointPort.length > 0 &&
+        isNumberOnly(newClientForm.endpointPort) &&
+        Number(newClientForm.endpointPort) < 65535, // number only, required
+}))
+
+const newClientFormStatusList = computed(() => ({
+    name: validations.value.name ? 'success' : 'error',
+    excludeIps: validations.value.excludeIps ? 'success' : 'error',
+    endpointIp: validations.value.endpointIp ? 'success' : 'error',
+    endpointPort: validations.value.endpointPort ? 'success' : 'error',
+}))
+
+const isNewClientModalShown = ref(false)
+
+const onNewClientConfirmedClicked = async () => {
+    if (!isNewClientFormValid) return
+    const payload = {
+        name: newClientForm.name,
+        excludeIps: newClientForm.excludeIps,
+        endpointIp: newClientForm.excludeIps.split(',').map((i) => String(i).trim()),
+        endpointPort: newClientForm.endpointIp,
+    }
+    console.log(payload)
+    const res = await newClientFetcher.post(payload).json()
 }
 
 const emit = defineEmits(['dropdown-item-clicked', 'update:query'])
