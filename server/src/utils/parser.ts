@@ -64,6 +64,18 @@ export default (command: string, stdout: string) => {
                     }
                 ]
             }
+        case 'wg genkey':
+            return {
+                key: stdout.trim()
+            };
+        case 'wg pubkey':
+            return {
+                key: stdout.trim()
+            };
+        case 'wg genpsk':
+            return {
+                key: stdout.trim()
+            };
         default:
             return {}
     }
