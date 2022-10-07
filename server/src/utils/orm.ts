@@ -1,17 +1,18 @@
 import fs from 'fs/promises';
 
 const WG_CONFIG_FILE_PATH = '/etc/wireguard/';
+export type Address = {
+  IPv4: {
+    address: string,
+    range: number
+  },
+  IPv6: {
+    address: string,
+    range: number
+  }
+}
 type Interface = {
-  Address: {
-    IPv4: {
-      address: string,
-      range: number
-    },
-    IPv6: {
-      address: string,
-      range: number
-    },
-  };
+  Address: Address;
   ListenPort: number;
   MTU: number;
   PostUp: string;
@@ -19,7 +20,7 @@ type Interface = {
   PrivateKey: string;
 };
 
-type Peer = {
+export type Peer = {
   client: string;
   publicKey: string;
   allowedIps: string;
@@ -28,7 +29,9 @@ type Peer = {
 
 type ConfigType = {
   iface: Interface;
+  interfaceName: string;
   peers: Peer[];
+  save: () => Promise<void>
 };
 
 const deserializer = (fileContent: string) => {
@@ -41,7 +44,7 @@ const deserializer = (fileContent: string) => {
       presharedKey: !!psk ? psk.split('PresharedKey = ')[1] : null,
   })) as Peer[];
   const serverInterface = rawServerInterface.reduce((si, l) => {
-    const [key, value] = l.split('=').map(s => s.trim());
+    const [key, value] = l.split(' =').map(s => s.trim());
     switch (key.toLowerCase()) {
       case 'address': {
         si[key] = value.split(',').reduce((addr, ipWithRange, i) => {
@@ -118,10 +121,16 @@ ${serializedPeers}
 class Config implements ConfigType {
   peers: Peer[];
   iface: Interface;
-  constructor(rawContent: string) {
+  interfaceName: string;
+  constructor(rawContent: string, interfaceName: string) {
     const res = deserializer(rawContent)
+    this.interfaceName = interfaceName;
     this.iface = res.iface;
     this.peers = res.peers;
+  }
+  async save() {
+    const rawContent = serializer(this);    
+    await fs.writeFile(WG_CONFIG_FILE_PATH + this.interfaceName + '.conf', rawContent);
   }
   toJSON() {
     const iface = {
@@ -148,9 +157,10 @@ export class ORM {
     const configFiles = (await fs.readdir(WG_CONFIG_FILE_PATH)).filter(f => f.includes('.conf'));
     const results = await Promise.all(configFiles.map(async (cf) => {
       const configFileContents = await fs.readFile(WG_CONFIG_FILE_PATH + cf, { 'encoding': 'utf-8' });
+      const interfaceName = cf.split('.conf')[0];
       return {
-        config: new Config(configFileContents),
-        interfaceName: cf.split('.conf')[0]
+        config: new Config(configFileContents, interfaceName),
+        interfaceName
       }
     }));
     this.interfaces = results.reduce((acc, { config, interfaceName }) => ({
