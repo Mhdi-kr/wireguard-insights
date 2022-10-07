@@ -27,8 +27,13 @@ router.get('/clients', async (req, res) => {
 // create new client
 router.post('/clients', async (req, res) => {
     try {
-        const req = res.send({
-            data: await wireguard.createClient({}),
+        return res.send({
+            data: await wireguard.createClient({
+                name: req.body.name,
+                excludeIps: req.body.excludeIps,
+                endpoint: req.body.endpoint,
+                endpointListenPort: req.body.endpointPort
+            }),
         })
     } catch (error) {
         console.error(error)
@@ -38,7 +43,7 @@ router.post('/clients', async (req, res) => {
 // edit an existing client
 router.patch('/clients/:pk', async (req, res) => {
     try {
-        const req = res.send({
+        return res.send({
             data: await wireguard.editClient('', {}),
         })
     } catch (error) {
@@ -47,9 +52,14 @@ router.patch('/clients/:pk', async (req, res) => {
 })
 
 // revoke an existing client by its public key
-router.delete('/clients/:pk', async (req, res) => {
+router.delete('/clients/:publicKey', async (req, res) => {
     try {
-    } catch (error) {}
+        return res.send({
+            data: await wireguard.revokeClient(req.params.publicKey),
+        })
+    } catch (error) {
+        console.error(error)
+    }
 })
 
 // download client configuration
