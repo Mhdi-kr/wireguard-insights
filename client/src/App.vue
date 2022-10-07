@@ -1,18 +1,20 @@
 <template>
     <n-config-provider :theme="darkTheme">
-        <main class="container box-border px-4 md:px-0 pt-4 mx-auto">
-            <section class="mb-4">
-                <toolbar :stats="stats" />
-            </section>
-            <section class="flex flex-row">
-                <section class="hidden md:block w-1/6 pr-2">
-                    <navigation-menu />
+        <n-message-provider>
+            <main class="container box-border px-4 md:px-0 pt-4 mx-auto">
+                <section class="mb-4">
+                    <toolbar :stats="stats" />
                 </section>
-                <section class="w-full md:w-5/6 md:pl-2">
-                    <router-view />
+                <section class="flex flex-row">
+                    <section class="hidden md:block w-1/6 pr-2">
+                        <navigation-menu />
+                    </section>
+                    <section class="w-full md:w-5/6 md:pl-2">
+                        <router-view />
+                    </section>
                 </section>
-            </section>
-        </main>
+            </main>
+        </n-message-provider>
     </n-config-provider>
 </template>
 
@@ -20,7 +22,7 @@
 import { computed, onBeforeUnmount } from 'vue'
 import { RouterView } from 'vue-router'
 import { useFetch } from '@vueuse/core'
-import { darkTheme, NConfigProvider } from 'naive-ui'
+import { darkTheme, NConfigProvider, NMessageProvider } from 'naive-ui'
 import Toolbar from './components/Toolbar.vue'
 import NavigationMenu from './components/NavigationMenu.vue'
 import endpoints from './endpoints'

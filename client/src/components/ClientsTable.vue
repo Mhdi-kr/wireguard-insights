@@ -38,7 +38,7 @@
                 </div>
                 <template #footer>
                     <div class="flex items-center justify-end">
-                        <n-button class="mx-2" @click="isNewClientModalShown = false">close</n-button>
+                        <n-button class="mx-2" @click="onNewClientClosed">close</n-button>
                         <n-button type="success" @click="onNewClientConfirmedClicked" :disabled="!isNewClientFormValid"
                             >confirm</n-button
                         >
@@ -77,7 +77,7 @@
 <script lang="ts" setup>
 import { h, defineProps, defineEmits, ref, reactive, computed } from 'vue'
 import type { Component } from 'vue'
-import { NButton, NDataTable, NIcon, NTag, NDropdown, NCard, NInput, NSpace, NModal } from 'naive-ui'
+import { NButton, NDataTable, NIcon, NTag, NDropdown, NCard, NInput, NSpace, NModal, useMessage } from 'naive-ui'
 import { AddCircle } from '@vicons/ionicons5'
 
 import {
@@ -101,6 +101,8 @@ const renderIcon = (icon: Component) => {
     }
 }
 
+const message = useMessage()
+
 // TODO: make a new namespace/component to isolate newClient business
 
 const isIpv4Valid = (ipv4: string) => /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$/.test(ipv4)
@@ -114,18 +116,28 @@ const newClientForm = reactive({
     endpointPort: '',
 })
 
-const newClientFetcher = useFetch(endpoints.CLIENTS)
+const onNewClientClosed = () => {
+    isNewClientModalShown.value = false
+    Object.assign(newClientForm, {
+        name: '',
+        excludeIps: '',
+        endpointIp: '',
+        endpointPort: '',
+    })
+}
 
 const isNewClientFormValid = computed(() => !Object.values(validations.value).includes(false))
 
 const validations = computed(() => ({
     name: !newClientForm.name.includes(' ') && newClientForm.name.length < 15 && newClientForm.name.length > 0, // name should not have contain spaces and be less than 15 chars
     excludeIps: Boolean(
-        !newClientForm.excludeIps
-            .split(',')
-            .map((i) => String(i).trim())
-            .map(isIpv4Valid)
-            .includes(false) && newClientForm.excludeIps.length
+        newClientForm.excludeIps.length === 0
+            ? true
+            : !newClientForm.excludeIps
+                  .split(',')
+                  .map((i) => String(i).trim())
+                  .map(isIpv4Valid)
+                  .includes(false)
     ), // comma separated valid ipv4s, not required
     endpointIp: isIpv4Valid(newClientForm.endpointIp), // single valid ipv4
     endpointPort:
@@ -144,15 +156,20 @@ const newClientFormStatusList = computed(() => ({
 const isNewClientModalShown = ref(false)
 
 const onNewClientConfirmedClicked = async () => {
-    if (!isNewClientFormValid) return
+    if (!isNewClientFormValid) return 
     const payload = {
         name: newClientForm.name,
-        excludeIps: newClientForm.excludeIps,
-        endpointIp: newClientForm.excludeIps.split(',').map((i) => String(i).trim()),
-        endpointPort: newClientForm.endpointIp,
+        excludeIps: newClientForm.excludeIps.length > 0 ? newClientForm.excludeIps.split(',').map((i) => String(i).trim()) : undefined,
+        endpointIp: newClientForm.endpointIp,
+        endpointPort: newClientForm.endpointPort,
     }
-    console.log(payload)
-    const res = await newClientFetcher.post(payload).json()
+    const { statusCode } = await useFetch(endpoints.CLIENTS).post(payload)
+    if (statusCode.value === 200) {
+        onNewClientClosed()
+        message.success('client created successfully')
+    } else {
+        message.error('client creation failed')
+    }
 }
 
 const emit = defineEmits(['dropdown-item-clicked', 'update:query'])

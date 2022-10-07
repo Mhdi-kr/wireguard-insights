@@ -79,7 +79,7 @@ export default {
             presharedKey: clientPresharedKey
         });
         await ORMInstance.selectInterface('wg0').save()
-        await exec('wg syncconf wg0 <(wg-quick strip wg0)')
+        await exec('wg syncconf wg0 <(wg-quick strip wg0)', { shell: '/bin/bash' })
         // create server public key
         const generateServerPublicKeyCommand = `echo ${iface.PrivateKey} | wg pubkey`;
         const [wgGenServerPubKey] = await Promise.all([exec(generateServerPublicKeyCommand)]);
@@ -110,7 +110,7 @@ AllowedIPs = ${allowedIps}
         ORMInstance.selectInterface('wg0').peers = ORMInstance.selectInterface('wg0').peers.filter(p => p.publicKey !== pk);
         console.log(ORMInstance.selectInterface('wg0').peers, pk);
         await ORMInstance.selectInterface('wg0').save();
-        await exec('wg syncconf wg0 <(wg-quick strip wg0)');
+        await exec('wg syncconf wg0 <(wg-quick strip wg0)', { shell: '/bin/bash' });
         return {
             success: true,
             deletedUserKey: pk
