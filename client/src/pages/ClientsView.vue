@@ -1,7 +1,7 @@
 <template>
     <div>
         <clients-table
-            :loading="loading"
+            :loading="unref(loading)"
             :clients="filteredClients"
             v-model:query="query"
             @dropdown-item-clicked="handleDropdownItem"
@@ -10,12 +10,12 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed, onBeforeUnmount, ref, reactive, unref } from 'vue'
 import { useFuse } from '@vueuse/integrations/useFuse'
 import { useFetch } from '@vueuse/core'
 import endpoints from './../endpoints'
 import ClientsTable from '../components/ClientsTable.vue'
-
+import { FormValidationStatus } from 'naive-ui/es/form/src/interface'
 const POLLING_INTERVAL = 750 // ms
 
 const clientFetcher = useFetch(endpoints.CLIENTS).json()
@@ -63,12 +63,10 @@ const searchedClients = useFuse(query, clients, {
 }).results
 
 const filteredClients = computed(() => {
-    let clients = searchedClients.value.map(({ item }) => ({ ...item }))
+    let clients = searchedClients.value.map((search: { item: any; refIndex: number }) => ({ ...search.item }))
     clients = clients.map((client) => ({
         ...client,
-        isPinned: pins.value.find((pk) => pk === client.publicKey)
-            ? true
-            : false,
+        isPinned: pins.value.find((pk) => pk === client.publicKey) ? true : false,
     }))
     clients.sort((a, b) => b.isPinned - a.isPinned)
     return clients

@@ -4,7 +4,7 @@
             <n-card title="New Client" style="width: 300px; max-width: 600px" role="dialog" :bordered="false">
                 <n-input
                     class="mb-2 mt-2"
-                    :status="newClientFormStatusList.name"
+                    :status="(newClientFormStatusList.name as FormValidationStatus)"
                     clearable
                     v-model:value="newClientForm.name"
                     type="text"
@@ -13,7 +13,7 @@
                 <n-input
                     class="mb-2"
                     clearable
-                    :status="newClientFormStatusList.excludeIps"
+                    :status="(newClientFormStatusList.excludeIps as FormValidationStatus)"
                     v-model:value="newClientForm.excludeIps"
                     type="text"
                     placeholder="Exclude IPs"
@@ -21,7 +21,7 @@
                 <div class="flex">
                     <n-input
                         class="mr-1"
-                        :status="newClientFormStatusList.endpointIp"
+                        :status="(newClientFormStatusList.endpointIp as FormValidationStatus)"
                         clearable
                         v-model:value="newClientForm.endpointIp"
                         type="text"
@@ -29,7 +29,7 @@
                     />
                     <n-input
                         class="ml-1"
-                        :status="newClientFormStatusList.endpointPort"
+                        :status="(newClientFormStatusList.endpointPort as FormValidationStatus)"
                         v-model:value="newClientForm.endpointPort"
                         clearable
                         type="text"
@@ -92,6 +92,7 @@ import {
 } from '@vicons/fluent'
 import { useFetch } from '@vueuse/core'
 import endpoints from '../endpoints'
+import { FormValidationStatus } from 'naive-ui/es/form/src/interface'
 
 const renderIcon = (icon: Component) => {
     return () => {
