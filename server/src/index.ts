@@ -1,5 +1,9 @@
 import express from 'express'
 import cors from 'cors'
+import * as jwt from 'jsonwebtoken'
+import cookieParser from 'cookie-parser'
+import bcrypt from 'bcrypt'
+
 import stats from './service/stats'
 import wireguard from './service/wireguard'
 import diagnose from './service/diagnose'
@@ -10,8 +14,43 @@ const port = process.env.HTTP_SERVER_PORT || 5000
 const router = express.Router()
 export const ORMInstance = new ORM()
 
+app.use(cookieParser())
 app.use(cors())
 app.use(express.json())
+
+// login route
+app.post('/api/v1/login', (req, res) => {
+    try {
+        const { username, password } = req.body
+        const u = process.env.AUTH_USERNAME || 'admin'
+        const p = process.env.AUTH_PASSWORD || 'admin'
+        if (username !== u || password !== p) return res.sendStatus(401)
+        const secret = process.env.JWT_SECRET || 'somesuperlongstringofchars'
+        const hash = bcrypt.hashSync(u + ':' + p, 10)
+        const token = jwt.sign({
+            hash
+        }, secret, { expiresIn: '24h' })
+        return res.cookie('token', token, { httpOnly: true }).json({
+            success: token
+        })
+    } catch (error) {
+        console.error(error)
+    }
+})
+
+// auth middleware
+const auth = (req, res) => {
+    const token = req.cookies.token
+    const u = process.env.AUTH_USERNAME || 'admin'
+    const p = process.env.AUTH_PASSWORD || 'admin'
+    const { hash: jwtHash } = jwt.decode(token) as { hash: string }
+    const isEqual = bcrypt.compareSync(u + ':' + p,jwtHash )
+    if (!isEqual) return res.sendStatus(401)
+    req.next()
+}
+
+// register auth middleware
+router.use(auth)
 
 // get all clients
 router.get('/clients', async (req, res) => {
@@ -86,7 +125,7 @@ router.get('/diagnose', async (req, res) => {
     try {
         res.send({
             data: await diagnose.run()
-        }) 
+        })
     } catch (error) {
         console.error(error)
     }
