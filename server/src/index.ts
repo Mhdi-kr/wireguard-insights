@@ -11,11 +11,12 @@ import { ORM } from './utils/orm'
 
 const app = express()
 const port = process.env.HTTP_SERVER_PORT || 5000
+const origin = process.env.CLIENT_ORIGIN || "http://localhost:5173"
 const router = express.Router()
 export const ORMInstance = new ORM()
 
 app.use(cookieParser())
-app.use(cors())
+app.use(cors({ credentials: true, origin }))
 app.use(express.json())
 
 // login route
@@ -40,13 +41,17 @@ app.post('/api/v1/login', (req, res) => {
 
 // auth middleware
 const auth = (req, res) => {
-    const token = req.cookies.token
-    const u = process.env.AUTH_USERNAME || 'admin'
-    const p = process.env.AUTH_PASSWORD || 'admin'
-    const { hash: jwtHash } = jwt.decode(token) as { hash: string }
-    const isEqual = bcrypt.compareSync(u + ':' + p,jwtHash )
-    if (!isEqual) return res.sendStatus(401)
-    req.next()
+    try {
+        const token = req.cookies.token
+        const u = process.env.AUTH_USERNAME || 'admin'
+        const p = process.env.AUTH_PASSWORD || 'admin'
+        const { hash: jwtHash } = jwt.decode(token) as { hash: string }
+        const isEqual = bcrypt.compareSync(u + ':' + p, jwtHash)
+        if (!isEqual) return res.sendStatus(401)
+        req.next()
+    } catch (error) {
+        console.error(error)
+    }
 }
 
 // register auth middleware

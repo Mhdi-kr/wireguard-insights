@@ -12,22 +12,19 @@
 <script lang="ts" setup>
 import { computed, onBeforeUnmount, ref, reactive, unref } from 'vue'
 import { useFuse } from '@vueuse/integrations/useFuse'
-import { useFetch } from '@vueuse/core'
 import endpoints from './../endpoints'
 import ClientsTable from '../components/ClientsTable.vue'
-import { FormValidationStatus } from 'naive-ui/es/form/src/interface'
+import { useAxios } from '@vueuse/integrations/useAxios'
 const POLLING_INTERVAL = 750 // ms
 
-const clientFetcher = useFetch(endpoints.CLIENTS).json()
+const clientFetcher = useAxios(endpoints.CLIENTS, { method: 'GET', withCredentials: true })
 const fetchInterval = setInterval(() => {
     if (clientFetcher.isFinished.value) {
         clientFetcher.execute()
     }
 }, POLLING_INTERVAL)
 
-const loading = computed(
-    () => clients.value.length === 0 && clientFetcher.isFetching
-)
+const loading = computed(() => clients.value.length === 0 && clientFetcher.isLoading)
 const clients = computed(() => {
     if (!clientFetcher.data.value) return []
     const { data } = clientFetcher.data.value
@@ -43,9 +40,7 @@ const handleDropdownItem = (payload) => {
     switch (key) {
         case 'pin':
             const indexOfFound = pins.value.indexOf(row.publicKey)
-            return indexOfFound == -1
-                ? pins.value.push(row.publicKey)
-                : pins.value.splice(indexOfFound, 1)
+            return indexOfFound == -1 ? pins.value.push(row.publicKey) : pins.value.splice(indexOfFound, 1)
         default:
             return
     }
