@@ -43,7 +43,6 @@ const router = createRouter({
 
 // guard router to always point to the clients view if no other route was found
 router.afterEach((to) => {
-    console.log(to)
     if (!to.name) return router.replace('/app/clients')
 })
 
