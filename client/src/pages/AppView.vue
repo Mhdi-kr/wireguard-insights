@@ -24,10 +24,11 @@ import Toolbar from '../components/Toolbar.vue'
 import NavigationMenu from '../components/NavigationMenu.vue'
 import endpoints from '../endpoints'
 import { useAxios } from '@vueuse/integrations/useAxios'
+import { instance } from './../axios'
 
 const POLLING_INTERVAL = 750 // ms
 
-const statsFetcher = useAxios(endpoints.STATS, { method: 'GET', withCredentials: true })
+const statsFetcher = useAxios(endpoints.STATS, instance)
 
 const stats = computed(() => {
     if (!statsFetcher.data.value) return { resources: {} }

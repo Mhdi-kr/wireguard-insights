@@ -36,23 +36,23 @@ const route = useRoute()
 const MENU_LIST = [
     {
         title: 'Clients',
-        link: '/clients',
+        link: '/app/clients',
         icon: Person48Filled,
     },
     {
         title: 'Diagnose',
-        link: '/diagnose',
+        link: '/app/diagnose',
         icon: Stethoscope24Filled,
     },
     {
         title: 'Logs',
-        link: '/logs',
+        link: '/app/logs',
         icon: Document16Filled,
     },
 ]
 
 const isCurrentTab = (menuItem: { title: string }) =>
-    String(menuItem.title).toLowerCase() === String(route.path).replace('/', '').toLowerCase() ? true : false
+    String(menuItem.title).toLowerCase() === String(route.path).replace('/app/', '').toLowerCase() ? true : false
 
 const toRoute = (menuItem: { link: string }) => router.replace(menuItem.link)
 </script>

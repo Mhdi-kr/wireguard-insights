@@ -47,10 +47,10 @@ const auth = (req, res) => {
         const p = process.env.AUTH_PASSWORD || 'admin'
         const { hash: jwtHash } = jwt.decode(token) as { hash: string }
         const isEqual = bcrypt.compareSync(u + ':' + p, jwtHash)
-        if (!isEqual) return res.sendStatus(401)
-        req.next()
+        return isEqual ? req.next() : res.sendStatus(401)
     } catch (error) {
         console.error(error)
+        return res.sendStatus(401)
     }
 }
 
