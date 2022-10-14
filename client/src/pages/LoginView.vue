@@ -16,6 +16,7 @@ import { NInput, NCard, NButton, NAlert } from 'naive-ui'
 import { useAxios } from '@vueuse/integrations/useAxios'
 import endpoints from '../endpoints'
 import { useRouter } from 'vue-router'
+import { instance } from './../axios'
 
 const router = useRouter()
 const password = ref('')
@@ -24,9 +25,9 @@ const username = ref('')
 const { execute, isLoading, response, error } = useAxios(
     endpoints.LOGIN,
     {
-        withCredentials: true,
         method: 'POST',
     },
+    instance,
     { immediate: false }
 )
 

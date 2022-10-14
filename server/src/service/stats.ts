@@ -17,9 +17,11 @@ const destinations = [
 const exec = util.promisify(cp.exec)
 
 const checkWireguard = async () => {
-    const { stderr, stdout } = await exec('systemctl --no-page show wg-quick@wg0.service')
-    const { status } = parser('systemctl status wg-quick@wg0.service', stdout)
-    return status
+    try {
+        const { stderr, stdout } = await exec('systemctl --no-page show wg-quick@wg0.service')
+        const { status } = parser('systemctl status wg-quick@wg0.service', stdout)
+        return status
+    } catch (error) {}
 }
 
 const checkConnection = () => {
@@ -37,9 +39,11 @@ const checkConnection = () => {
 }
 
 const checkSystemResources = async () => {
-    const { stdout, stderr } = await exec('top -b -n 1')
-    const { status } = parser('top -b -n 1', stdout)
-    return status
+    try {
+        const { stdout, stderr } = await exec('top -b -n 1')
+        const { status } = parser('top -b -n 1', stdout)
+        return status
+    } catch (error) {}
 }
 
 /**

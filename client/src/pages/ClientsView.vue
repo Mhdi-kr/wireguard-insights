@@ -15,9 +15,10 @@ import { useFuse } from '@vueuse/integrations/useFuse'
 import endpoints from './../endpoints'
 import ClientsTable from '../components/ClientsTable.vue'
 import { useAxios } from '@vueuse/integrations/useAxios'
+import { instance } from './../axios'
 const POLLING_INTERVAL = 750 // ms
 
-const clientFetcher = useAxios(endpoints.CLIENTS, { method: 'GET', withCredentials: true })
+const clientFetcher = useAxios(endpoints.CLIENTS, instance)
 const fetchInterval = setInterval(() => {
     if (clientFetcher.isFinished.value) {
         clientFetcher.execute()
@@ -29,7 +30,6 @@ const clients = computed(() => {
     if (!clientFetcher.data.value) return []
     const { data } = clientFetcher.data.value
     return data.filter((client) => !!client)
-    // console.log(statsFetcher.json().data.value);
 })
 
 const pins = ref([])
