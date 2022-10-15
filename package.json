@@ -1,0 +1,16 @@
+  {
+  "name": "wg-insights",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "client:start": "pnpm --filter @wg-insights/client start",
+    "server:start": "pnpm --filter @wg-insights/server start",
+    "client:dev": "pnpm --filter @wg-insights/client dev",
+    "server:dev": "pnpm --filter @wg-insights/server dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
