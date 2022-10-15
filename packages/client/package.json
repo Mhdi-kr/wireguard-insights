@@ -1,11 +1,11 @@
 {
-  "name": "client",
+  "name": "@wg-insights/client",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "prod": "vue-tsc --noEmit && vite build && vite preview --host",
+    "start": "vue-tsc --noEmit && vite build && vite preview --host",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview"
   },
