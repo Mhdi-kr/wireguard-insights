@@ -4,7 +4,7 @@
             <n-card title="New Client" style="width: 300px; max-width: 600px" role="dialog" :bordered="false">
                 <n-input
                     class="mb-2 mt-2"
-                    :status="(newClientFormStatusList.name as FormValidationStatus)"
+                    :status="(newClientFormStatusList.name as any)"
                     clearable
                     v-model:value="newClientForm.name"
                     type="text"
@@ -13,7 +13,7 @@
                 <n-input
                     class="mb-2"
                     clearable
-                    :status="(newClientFormStatusList.excludeIps as FormValidationStatus)"
+                    :status="(newClientFormStatusList.excludeIps as any)"
                     v-model:value="newClientForm.excludeIps"
                     type="text"
                     placeholder="Exclude IPs"
@@ -21,7 +21,7 @@
                 <div class="flex">
                     <n-input
                         class="mr-1"
-                        :status="(newClientFormStatusList.endpointIp as FormValidationStatus)"
+                        :status="(newClientFormStatusList.endpointIp as any)"
                         clearable
                         v-model:value="newClientForm.endpointIp"
                         type="text"
@@ -29,7 +29,7 @@
                     />
                     <n-input
                         class="ml-1"
-                        :status="(newClientFormStatusList.endpointPort as FormValidationStatus)"
+                        :status="(newClientFormStatusList.endpointPort as any)"
                         v-model:value="newClientForm.endpointPort"
                         clearable
                         type="text"
@@ -39,8 +39,8 @@
                 <template #footer>
                     <div class="flex items-center justify-end">
                         <n-button class="mx-2" @click="onNewClientClosed">close</n-button>
-                        <n-button type="success" @click="onNewClientConfirmedClicked" :disabled="!isNewClientFormValid"
-                            >confirm</n-button
+                        <n-button type="success" @click="onNewClientConfirmedClicked" :disabled="!isNewClientFormValid">
+                            confirm</n-button
                         >
                     </div>
                 </template>
@@ -90,9 +90,8 @@ import {
     Edit16Regular,
     Pin20Regular,
 } from '@vicons/fluent'
-import { useFetch } from '@vueuse/core'
 import endpoints from '../endpoints'
-import { FormValidationStatus } from 'naive-ui/es/form/src/interface'
+import { useAxios } from '@vueuse/integrations/useAxios'
 
 const renderIcon = (icon: Component) => {
     return () => {
@@ -157,15 +156,18 @@ const newClientFormStatusList = computed(() => ({
 const isNewClientModalShown = ref(false)
 
 const onNewClientConfirmedClicked = async () => {
-    if (!isNewClientFormValid) return 
+    if (!isNewClientFormValid) return
     const payload = {
         name: newClientForm.name,
-        excludeIps: newClientForm.excludeIps.length > 0 ? newClientForm.excludeIps.split(',').map((i) => String(i).trim()) : undefined,
+        excludeIps:
+            newClientForm.excludeIps.length > 0
+                ? newClientForm.excludeIps.split(',').map((i) => String(i).trim())
+                : undefined,
         endpointIp: newClientForm.endpointIp,
         endpointPort: newClientForm.endpointPort,
     }
-    const { statusCode } = await useFetch(endpoints.CLIENTS).post(payload)
-    if (statusCode.value === 200) {
+    const { response } = await useAxios(endpoints.CLIENTS, { withCredentials: true, data: payload })
+    if (response.value.status === 200) {
         onNewClientClosed()
         message.success('client created successfully')
     } else {
