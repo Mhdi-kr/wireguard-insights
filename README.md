@@ -39,13 +39,13 @@ You can try using this software on your local machine or deploy it else where an
 
 ```bash
 # start both client and server
-pm2 start ecosystem.config.js
+pm2 start ecosystem.prod.js
 
 # start the client only
-pm2 start ecosystem.config.js --only @wg-insights/client
+pm2 start ecosystem.prod.js --only @wg-insights/client
 
 # start the server only
-pm2 start ecosystem.config.js --only @wg-insights/server
+pm2 start ecosystem.prod.js --only @wg-insights/server
 ```
 
 ## Development
