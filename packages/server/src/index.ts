@@ -85,10 +85,10 @@ router.post('/clients', async (req, res) => {
 })
 
 // edit an existing client
-router.patch('/clients/:pk', async (req, res) => {
+router.patch('/clients/edit/', async (req, res) => {
     try {
         return res.send({
-            data: await wireguard.editClient('', {}),
+            data: await wireguard.editClient(req.body.publicKey, req.body.fields),
         })
     } catch (error) {
         console.error(error)
