@@ -102,7 +102,14 @@ AllowedIPs = ${allowedIps}
      * modify an existing client fetched by its
      * @param {any} deps:any
      */
-    editClient: async (pk: string, payload: any) => { },
+    editClient: async (pk: string, payload: {
+        name?: string
+    }) => {
+        const peerIndex = ORMInstance.selectInterface('wg0').peers.findIndex(p => p.publicKey === pk);
+        ORMInstance.selectInterface('wg0').peers[peerIndex].client = payload.name;
+        ORMInstance.selectInterface('wg0').save();
+        return ORMInstance.selectInterface('wg0').peers[peerIndex];
+    },
     /**
      * revoke an existing client fetched by its public key
      */
