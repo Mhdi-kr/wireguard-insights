@@ -172,7 +172,7 @@ export class ORM {
       // console.log(error);
     }
   }
-  async resetTrafficRemaining(pubkey: string) {
+  async resetRemainingTraffic(pubkey: string) {
     const statement = db.prepare('UPDATE peers SET remaining = ? WHERE public_key = ?');
     await run(statement, [10, pubkey]);
   }
