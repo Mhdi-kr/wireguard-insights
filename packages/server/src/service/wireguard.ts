@@ -12,18 +12,8 @@ export default {
      * get a list of all client objects
      */
     getClients: async () => {
-        // const [wgShow] = await Promise.all([exec("wg show")])
-        // const { peers } = parser('wg show', wgShow.stdout)
-        const peers = [
-            {
-                publicKey: '0m9BD+Ffn1ehGh7jd+S/nEETYnpDWm4/AkAiyqWiwng=',
-                endpoint: 'dumas.ir:58388',
-                transfer: {
-                    sent: '8.01GiB',
-                    recieved: '742.07MiB'
-                }
-            }
-        ]
+        const [wgShow] = await Promise.all([exec("wg show")])
+        const { peers } = parser('wg show', wgShow.stdout)
         const { peers: entries } = ORMInstance.selectInterface('wg0')
         const entryPeerJoin = peers?.map(peer => {
             const foundClient = entries?.find(entry => entry.publicKey === peer.publicKey)
