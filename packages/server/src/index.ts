@@ -109,7 +109,6 @@ router.delete('/clients/:publicKey', async (req, res) => {
 
 router.post('/clients/suspend', async (req, res) => {
     try {
-        console.log(req.body);
         return res.send({
             data: await wireguard.suspendClient(req.body.publicKey),
         })
