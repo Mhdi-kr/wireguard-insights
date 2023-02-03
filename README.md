@@ -26,8 +26,6 @@ I was looking for a usable and preferably good-looking UI to manage my Wireguard
 
 You can try using this software on your local machine or deploy it else where and keep it running with PM2.
 
-## Environment variables
-
 ### Local machine
 
 1. Clone this git repository
@@ -59,3 +57,5 @@ pm2 start deployment/pm2/prod.config.js --only @wg-insights/server
 4. Run the client running `pnpm client:dev`
 
 Client uses HMR in vite and the server uses nodemon for you to be able to iterate quickly.
+
+## Environment variables
