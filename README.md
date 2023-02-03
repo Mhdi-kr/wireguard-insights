@@ -15,7 +15,7 @@ A self-hosted HTTP and web-based adapter for wireguard servers to manage peers a
 
 ## Story
 
-I was looking for a usable and preferably good-looking UI to manage my Wireguard peers and server. I've tested many repositories with quite high number of starts but none of them satisfied me because I was looking for:
+I was looking for a usable and preferably good-looking UI to manage my Wireguard peers and server. I've tested many repositories with quite high number of stars but none of them satisfied me because I was looking for:
 
 - Easy to deploy, least number of required environment variables
 - Compatibility with the widely used `wireguard-install.sh` script (so I don't lose my previously generated peers)
