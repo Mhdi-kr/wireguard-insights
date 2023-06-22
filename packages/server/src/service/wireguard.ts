@@ -116,4 +116,27 @@ AllowedIPs = ${allowedIps}
             deletedUserKey: pk
         };
     },
+    suspendClient: async (pk: string) => {
+        const peer = ORMInstance.selectInterface('wg0').peers.find(p => p.publicKey === pk);
+        peer.isSuspended = true;
+        await ORMInstance.selectInterface('wg0').save();
+        await exec('wg syncconf wg0 <(wg-quick strip wg0)', { shell: '/bin/bash' });
+        return {
+            success: true,
+            suspendedPublicKey: pk
+        };
+    },
+    unsuspendClient: async (pk: string, shouldResetRemaining: boolean) => {
+        const peer = ORMInstance.selectInterface('wg0').peers.find(p => p.publicKey === pk);
+        peer.isSuspended = false;
+        await ORMInstance.selectInterface('wg0').save();
+        if (shouldResetRemaining) {
+            await ORMInstance.resetRemainingTraffic(pk);
+        }
+        await exec('wg syncconf wg0 <(wg-quick strip wg0)', { shell: '/bin/bash' });
+        return {
+            success: true,
+            unsuspendedPublicKey: pk
+        };
+    },
 }

@@ -8,6 +8,7 @@ import stats from './service/stats'
 import wireguard from './service/wireguard'
 import diagnose from './service/diagnose'
 import { ORM } from './utils/orm'
+import './utils/db'
 
 const app = express()
 const port = process.env.HTTP_SERVER_PORT || 5000
@@ -106,13 +107,25 @@ router.delete('/clients/:publicKey', async (req, res) => {
     }
 })
 
-// download client configuration
-router.get('/clients/:pk/configuration', async (req, res) => {
+router.post('/clients/suspend', async (req, res) => {
     try {
+        return res.send({
+            data: await wireguard.suspendClient(req.body.publicKey),
+        })
     } catch (error) {
         console.error(error)
     }
-})
+});
+
+router.post('/clients/unsuspend/', async (req, res) => {
+    try {
+        return res.send({
+            data: await wireguard.unsuspendClient(req.body.publicKey, req.body.resetRemaining),
+        })
+    } catch (error) {
+        console.error(error)
+    }
+});
 
 router.get('/health', (req, res) => res.sendStatus(200))
 

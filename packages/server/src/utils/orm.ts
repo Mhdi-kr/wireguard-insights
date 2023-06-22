@@ -1,4 +1,10 @@
+import cp from 'child_process';
+import util from 'util';
+const exec = util.promisify(cp.exec)
 import fs from 'fs/promises';
+import { db, run, finalize, all } from './db';
+import { DataUnit } from 'digital-unit-converter';
+import parser from './parser';
 
 const WG_CONFIG_FILE_PATH = '/etc/wireguard/';
 export type Address = {
@@ -25,6 +31,7 @@ export type Peer = {
   publicKey: string;
   allowedIps: string;
   presharedKey: string;
+  isSuspended?: boolean;
 };
 
 type ConfigType = {
@@ -42,6 +49,7 @@ const deserializer = (fileContent: string) => {
       publicKey: !!publicKey ? publicKey.split('PublicKey = ')[1] : null,
       allowedIps: !!allowedIps ? allowedIps.split('AllowedIPs = ')[1] : null,
       presharedKey: !!psk ? psk.split('PresharedKey = ')[1] : null,
+      isSuspended: !!publicKey ? publicKey[0] === '#' : false
   })) as Peer[];
   const serverInterface = rawServerInterface.reduce((si, l) => {
     const [key, value] = l.split(' =').map(s => s.trim());
@@ -98,10 +106,10 @@ const serializer = (config: Config) => {
   const serializedPeers = config.peers.reduce((r, p) => {
     return `${r}
 ### Client ${p.client}
-[Peer]
-PublicKey = ${p.publicKey}
-PresharedKey = ${p.presharedKey}
-AllowedIPs = ${p.allowedIps}
+${p.isSuspended ? '#' : ''}[Peer]
+${p.isSuspended ? '#' : ''}PublicKey = ${p.publicKey}
+${p.isSuspended ? '#' : ''}PresharedKey = ${p.presharedKey}
+${p.isSuspended ? '#' : ''}AllowedIPs = ${p.allowedIps}
 `;
   }, '');
   const ipv4AddressWithRange = `${config.iface.Address.IPv4.address}/${config.iface.Address.IPv4.range}`;
@@ -153,19 +161,79 @@ export class ORM {
   selectInterface(name: string) {
     return this.interfaces[name];
   }
-  async loadInterfaces() {
-    const configFiles = (await fs.readdir(WG_CONFIG_FILE_PATH)).filter(f => f.includes('.conf'));
-    const results = await Promise.all(configFiles.map(async (cf) => {
-      const configFileContents = await fs.readFile(WG_CONFIG_FILE_PATH + cf, { 'encoding': 'utf-8' });
-      const interfaceName = cf.split('.conf')[0];
-      return {
-        config: new Config(configFileContents, interfaceName),
-        interfaceName
+  async upsertPeers(iface: string, pubkeys: string[]) {
+    try {
+      const stmt = db.prepare("INSERT INTO peers VALUES (?, ?, ?, ?, ?)");
+      for (const pubkey of pubkeys) {
+        await run(stmt, [pubkey, 0, 0, iface, 10]);
       }
-    }));
-    this.interfaces = results.reduce((acc, { config, interfaceName }) => ({
-      ...acc,
-      [interfaceName]: config
-    }), {});
+      await finalize(stmt);
+    } catch (error) {
+      // console.log(error);
+    }
+  }
+  async resetRemainingTraffic(pubkey: string) {
+    const statement = db.prepare('UPDATE peers SET remaining = ? WHERE public_key = ?');
+    await run(statement, [10, pubkey]);
+  }
+  async updateTrafficUsage(pubkey: string, sent: string, received: string) {
+    const dataUnitMap = {
+      'B': DataUnit.BYTE,
+      'KiB': DataUnit.KIBIBYTE,
+      'MiB': DataUnit.MEBIBYTE,
+      'GiB': DataUnit.GIBIBYTE
+    };
+    const sentUnit = sent.slice(-3);
+    const sentAmount = sent.slice(0, -3 + sent.length);
+    const receivedUnit = received.slice(-3);
+    const receivedAmount = received.slice(0, -3 + received.length);
+    const [firstPeer] = await all('SELECT * FROM peers WHERE public_key = ' + `'${pubkey}'`);
+    const sentGbs = DataUnit.GIGABYTE.convert(parseFloat(sentAmount), dataUnitMap[sentUnit]);
+    const receivedGbs = DataUnit.GIGABYTE.convert(parseFloat(receivedAmount), dataUnitMap[receivedUnit]);
+    const diffSent = sentGbs - firstPeer.sent;
+    const diffReceived = receivedGbs - firstPeer.received;
+    const statement = db.prepare('UPDATE peers SET sent = ?, received = ?, remaining = ? WHERE public_key = ?');
+    const newRemainingAmount = firstPeer.remaining - (diffSent + diffReceived);
+    if (newRemainingAmount === 0 || newRemainingAmount < 0) {
+      const peer = this.selectInterface('wg0').peers.find(p => p.publicKey === pubkey);
+      peer.isSuspended = true;
+      await this.selectInterface('wg0').save();
+      await exec('wg syncconf wg0 <(wg-quick strip wg0)', { shell: '/bin/bash' });
+    }
+    await run(statement, [sentGbs, receivedGbs, newRemainingAmount, pubkey]);
+  }
+  async loadInterfaces() {
+    const readInterfaceConfig = async () => {
+      const configFiles = (await fs.readdir(WG_CONFIG_FILE_PATH)).filter(f => f.includes('.conf'));
+      const results = await Promise.all(configFiles.map(async (cf) => {
+        const configFileContents = await fs.readFile(WG_CONFIG_FILE_PATH + cf, { 'encoding': 'utf-8' });
+        const interfaceName = cf.split('.conf')[0];
+        return {
+          config: new Config(configFileContents, interfaceName),
+          interfaceName
+        }
+      }));
+      this.interfaces = results.reduce((acc, { config, interfaceName }) => ({
+        ...acc,
+        [interfaceName]: config
+      }), {});
+      const promises = results.map(async (r) => {
+        await this.upsertPeers(r.interfaceName, r.config.peers.map(p => p.publicKey))
+      });
+      await Promise.all(promises);
+    };
+    const upsertPeersInterval = setInterval(readInterfaceConfig, 1000 * 60 * 5);
+    await readInterfaceConfig();
+    const updateTrafficUsageInterval = setInterval(async () => {
+      const [wgShow] = await Promise.all([exec("wg show")])
+      const { peers } = parser('wg show', wgShow.stdout)
+      const { peers: entries } = this.selectInterface('wg0')
+      const promises = peers?.map(async (peer) => {
+          const foundClient = entries?.find(entry => entry.publicKey === peer.publicKey)
+          if (!foundClient) return null
+          await this.updateTrafficUsage(peer.publicKey, peer.transfer.sent, peer.transfer.recieved);
+      });
+      await Promise.all(promises);
+    }, 1000 * 60 * 5);
   }
 };
