@@ -46,8 +46,8 @@ const auth = (req, res) => {
         const token = req.cookies.token
         const u = process.env.AUTH_USERNAME || 'admin'
         const p = process.env.AUTH_PASSWORD || 'admin'
-        const { hash: jwtHash } = jwt.decode(token) as { hash: string }
-        const isEqual = bcrypt.compareSync(u + ':' + p, jwtHash)
+        const jwtHash = jwt.decode(token)
+        const isEqual = bcrypt.compareSync(u + ':' + p, jwtHash as string)
         return isEqual ? req.next() : res.sendStatus(401)
     } catch (error) {
         console.error(error)
